@@ -81,7 +81,24 @@ function Contents() {
     const [isRolling, setIsRolling] = useState(false);
     const [stopIndexes, setStopIndexes] = useState([0, 0, 0]);
     const [points, setPoints] = useState(100); // 시작 포인트
-    
+    const [isScrolling, setIsScrolling] = useState(false);
+    const containerRef = useRef(null);
+    const listRef = useRef(null);
+
+    const listClassName = `item-list ${isScrolling ? 'is-scrolling' : ''}`;
+    const items = ['1.a', '2.b', '3.c', '4.d', '5.e', '6.f'];
+
+    useEffect(() => {
+      const container = containerRef.current;
+      const list = listRef.current;
+  
+      if (container && list) {
+        const originalContentHeight = list.scrollHeight / 2;
+        const containerHeight = container.clientHeight;
+        setIsScrolling(originalContentHeight > containerHeight);
+      }
+    }, [items]);    
+
     const startSpin = () => {
         if (isRolling || points < 10) return;
         setIsRolling(true);
@@ -132,10 +149,37 @@ function Contents() {
 
             <div className='contents-right'>
                 <div className="contents-right-top">
-                  모든 사용자 슬롯 기록
+                  <div className="scroll-container" ref={containerRef}>
+                    <ul className={listClassName} ref={listRef}>
+                      {items.map((item, index) => (
+                        <li key={`original-${index}`}>{item}</li>
+                      ))}
+
+                      {isScrolling && items.map((item, index) => (
+                        <li key={`clone-${index}`}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
                 <div className='contents-right-bottom'>
-                  슬롯 점수 표
+                  <table>
+                    <tbody>
+                      {images.map((item) => {
+                        const fruitRows = fruitPoints[item].map((score, idx) => {
+                          const fruitCount = idx + 2;
+                          return (
+                            <tr key={`${item}-${idx}`}>
+                              <td>
+                                {Array.from({ length: fruitCount }, () => item)}
+                              </td>
+                              <td>{score} point</td>
+                            </tr>
+                          );
+                        });
+                        return fruitRows;
+                      })}
+                    </tbody>
+                  </table>
                 </div>
             </div>
         </div>

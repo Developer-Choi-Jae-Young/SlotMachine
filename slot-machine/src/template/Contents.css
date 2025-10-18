@@ -9,10 +9,9 @@
 }
 
 .contents-left {   
-    padding: 20px;
+    margin: 20px;
     width: 30%;
     height: 100%;
-    border: 1px solid #fff;
 }
 
 .contents-left-title {
@@ -52,10 +51,9 @@
 }
 
 .contents-right {
-    padding: 20px;
+    margin: 20px;
     width: 30%;
     height: 100%;
-    border: 1px solid #fff;
 }
 
 .contents-right-top {
@@ -68,6 +66,11 @@
     width: 100%;
     height: 50%;
     border: 1px solid #fff;
+    overflow-y: scroll;
+}
+
+.contents-right-bottom table {
+  font-size: 32pt;
 }
 
 .btn-spin {
@@ -133,4 +136,50 @@
   to {
     transform: translateY(-2100px); /* 실제로는 동적으로 계산됨 */
   }
+}
+
+/* 컨테이너 스타일 */
+.scroll-container {
+  height: 100%; /* 고정된 높이가 있어야 비교 가능 */
+  width: 100%;
+  overflow: hidden;
+}
+
+/* 아이템 리스트 기본 스타일 */
+.item-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* 스크롤이 필요할 때만 적용될 애니메이션 클래스 */
+.item-list.is-scrolling {
+  animation: scroll-up 5s linear infinite;
+}
+
+/* 아이템 각각의 스타일 */
+.item-list li {
+  font-size: 24px;
+  text-align: center;
+  padding: 10px 0;
+  height: 40px;
+}
+
+/* 애니메이션 효과 */
+@keyframes scroll-up {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+.scroll-container:hover .item-list.is-scrolling {
+  animation-play-state: paused;
+}
+
+.repeated-item {
+  display: block; /* 이 속성이 br 태그처럼 줄바꿈 역할을 합니다. */
+  margin-bottom: 8px; /* 항목 간의 간격을 추가로 줄 수도 있습니다. */
 }
