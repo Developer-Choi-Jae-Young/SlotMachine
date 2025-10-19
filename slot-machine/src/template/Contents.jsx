@@ -1,7 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import './Contents.css'
 
 const images = ['🍎', '🍊', '🍌', '🍇', '🍓', '🥝', '🍒'];
+const outcomes = [
+  // name: 결과 이름, prize: 당첨될 과일, count: 당첨 과일 개수, reward: 보상, weight: 가중치(확률%)
+  { name: '사과 2개', prize: '🍎', count: 2, reward: 20, weight: 10 },
+  { name: '사과 3개', prize: '🍎', count: 3, reward: 50, weight: 2 }, 
+  { name: '오렌지 2개', prize: '🍊', count: 2, reward: 25, weight: 8 },
+  { name: '오렌지 3개', prize: '🍊', count: 3, reward: 60, weight: 1.5 },
+  { name: '바나나 2개', prize: '🍌', count: 2, reward: 30, weight: 6 },
+  { name: '바나나 3개', prize: '🍌', count: 3, reward: 80, weight: 0.7 },
+  { name: '포도 2개', prize: '🍇', count: 2, reward: 35, weight: 4 },
+  { name: '포도 3개', prize: '🍇', count: 3, reward: 100, weight: 0.1 },
+  { name: '딸기 2개', prize: '🍓', count: 2, reward: 50, weight: 2 },
+  { name: '딸기 3개', prize: '🍓', count: 3, reward: 150, weight: 0.05 },
+  { name: '키위 2개', prize: '🥝', count: 2, reward: 75, weight: 1 },
+  { name: '키위 3개', prize: '🥝', count: 3, reward: 250, weight: 0.01 },
+  { name: '체리 2개', prize: '🍒', count: 2, reward: 100, weight: 0.1 },
+  { name: '체리 3개', prize: '🍒', count: 3, reward: 500, weight: 0.001 },
+  { name: '미당첨', prize: null, count: 0, reward: 0, weight: 64.539 },
+];
 const fruitPoints = {
     '🍎': [20, 50],
     '🍊': [25, 60],
@@ -11,7 +29,21 @@ const fruitPoints = {
     '🥝': [75, 250],
     '🍒': [100, 500],
   };
-  
+
+const getWeightedRandomIndex = (weights) => {
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  let random = Math.random() * totalWeight;
+
+  for (let i = 0; i < weights.length; i++) {
+    if (random < weights[i]) {
+      return i;
+    }
+    random -= weights[i];
+  }
+
+  return weights.length - 1; 
+};
+
 const calculateReward = (results) => {
     const counts = {};
     results.forEach(fruit => {
@@ -82,8 +114,10 @@ function Contents() {
     const [stopIndexes, setStopIndexes] = useState([0, 0, 0]);
     const [points, setPoints] = useState(100); // 시작 포인트
     const [isScrolling, setIsScrolling] = useState(false);
+    const [showWinEffect, setShowWinEffect] = useState(false);
     const containerRef = useRef(null);
     const listRef = useRef(null);
+    const winSoundRef = useRef(null);
 
     const listClassName = `item-list ${isScrolling ? 'is-scrolling' : ''}`;
     const items = ['1.a', '2.b', '3.c', '4.d', '5.e', '6.f'];
@@ -99,30 +133,65 @@ function Contents() {
       }
     }, [items]);    
 
+    const generateReelSet = (outcome) => {
+      const finalSymbols = [];
+      const prizeSymbol = outcome.prize;
+
+      if (outcome.count === 3) {
+          return [prizeSymbol, prizeSymbol, prizeSymbol];
+      }
+
+      if (outcome.count === 2) {
+          let otherSymbol;
+          do {
+              otherSymbol = images[Math.floor(Math.random() * images.length)];
+          } while (otherSymbol === prizeSymbol);
+          
+          const result = [prizeSymbol, prizeSymbol, otherSymbol];
+          return result.sort(() => Math.random() - 0.5);
+      }
+
+      const shuffled = [...images].sort(() => Math.random() - 0.5);
+      return [shuffled[0], shuffled[1], shuffled[2]];
+    };
+
     const startSpin = () => {
         if (isRolling || points < 10) return;
         setIsRolling(true);
         setPoints(prev => prev - 10); // 10포인트 차감
       
-        const newIndexes = [
-          Math.floor(Math.random() * images.length),
-          Math.floor(Math.random() * images.length),
-          Math.floor(Math.random() * images.length),
-        ];
+        const outcomeWeights = outcomes.map(o => o.weight);
+        const resultIndex = getWeightedRandomIndex(outcomeWeights);
+        const finalOutcome = outcomes[resultIndex];
+        const finalSymbols = generateReelSet(finalOutcome);
+        const newIndexes = finalSymbols.map(symbol => images.indexOf(symbol));
         setStopIndexes(newIndexes);
-      
-        // 롤링 끝나고 보상 처리
+
         setTimeout(() => {
-          setIsRolling(false);
-          const results = newIndexes.map(i => images[i]);
-          const reward = calculateReward(results);
-          setPoints(prev => prev + reward);
-        }, 2500);
-      };
+          // 당첨되었을 경우, 이펙트와 사운드를 재생합니다.
+          if (finalOutcome.reward > 0) {
+              setShowWinEffect(true);
+              winSoundRef.current?.play();
+              setTimeout(() => {
+                  setShowWinEffect(false);
+                  setIsRolling(false);
+                  if (winSoundRef.current) {
+                    winSoundRef.current.pause();
+                    winSoundRef.current.currentTime = 0;
+                  }
+              }, 3000); // 1.5초 후 이펙트 끄기
+          } else {
+            setIsRolling(false);
+          }
+          
+          setPoints(prev => prev + finalOutcome.reward);
+      }, 3000);
+    };
 
     return (
         <div className='contents'>
-            <div className='contents-left'>
+            <audio ref={winSoundRef} src="/win-sound.mp3" preload="auto"></audio>
+            <div className={`contents-left ${showWinEffect ? 'win-effect' : ''}`}>
                 <div className='contents-left-title'>
                     <h1>SUPER SLOT</h1>
                     <span>10 포인트로 게임을 시작하세요!</span>
@@ -164,20 +233,16 @@ function Contents() {
                 <div className='contents-right-bottom'>
                   <table>
                     <tbody>
-                      {images.map((item) => {
-                        const fruitRows = fruitPoints[item].map((score, idx) => {
-                          const fruitCount = idx + 2;
+                      {outcomes.map((item) => { 
                           return (
-                            <tr key={`${item}-${idx}`}>
-                              <td>
-                                {Array.from({ length: fruitCount }, () => item)}
-                              </td>
-                              <td>{score} point</td>
+                            <tr>
+                              <td>{item.count === 0 ? '미당첨' : Array.from({ length: item.count }, () => item.prize)}</td>
+                              <td>{item.reward} Point</td>
+                              <td>{item.weight}%</td>
                             </tr>
-                          );
-                        });
-                        return fruitRows;
-                      })}
+                          )
+                        }
+                      )}
                     </tbody>
                   </table>
                 </div>

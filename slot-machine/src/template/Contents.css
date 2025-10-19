@@ -70,7 +70,7 @@
 }
 
 .contents-right-bottom table {
-  font-size: 32pt;
+  font-size: 24pt;
 }
 
 .btn-spin {
@@ -180,6 +180,22 @@
 }
 
 .repeated-item {
-  display: block; /* 이 속성이 br 태그처럼 줄바꿈 역할을 합니다. */
-  margin-bottom: 8px; /* 항목 간의 간격을 추가로 줄 수도 있습니다. */
+  display: block;
+  margin-bottom: 8px;
+}
+
+.contents-left.win-effect {
+  animation: flash 0.3s 5; /* 0.3초짜리 애니메이션을 5번 반복 */
+}
+
+@keyframes flash {
+  0% {
+      box-shadow: 0 0 10px 5px rgba(255, 215, 0, 0.8);
+  }
+  50% {
+      box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.4);
+  }
+  100% {
+      box-shadow: 0 0 10px 5px rgba(255, 215, 0, 0.8);
+  }
 }
