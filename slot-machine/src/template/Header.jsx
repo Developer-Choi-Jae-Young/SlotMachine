@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react'
 import './Header.css'
 
 function Header() {
-    const [user, setUser] = useState(null)
-    const [isLogin, setIsLogin] = useState(false)
+    const [user] = useState({ username: 'Player1', points: 1000 });
+    const [isLogin] = useState(false);
     
     useEffect(() => {
         const userData = localStorage.getItem("currentUser")
@@ -35,22 +35,22 @@ function Header() {
     }   
 
     return (
-        <div className='header'>
-            <div className='header-title'>
-                <h1>과일 슬롯 게임</h1>
-                {user &&!isLogin && <span>{user.points}</span>}
-            </div>
-            
-
-            {isLogin ? (
-                <>
-                <button>마이페이지</button>
-                <button>로그아웃</button>
-                </>
-            ) : (
-                <button>로그인</button>
-            )}
+    <div className="header">
+      <div className="header-container">
+        <div className="header-title">
+          <h1>🎰 과일 슬롯 게임</h1>
         </div>
+        
+        {isLogin ? (
+          <div className="header-buttons">
+            <button className="header-button">마이페이지</button>
+            <button className="header-button">로그아웃</button>
+          </div>
+        ) : (
+          <button className="header-button">로그인</button>
+        )}
+      </div>
+    </div>
     )
 }
 

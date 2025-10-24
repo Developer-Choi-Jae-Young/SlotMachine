@@ -44,20 +44,6 @@ const getWeightedRandomIndex = (weights) => {
   return weights.length - 1; 
 };
 
-const calculateReward = (results) => {
-    const counts = {};
-    results.forEach(fruit => {
-      counts[fruit] = (counts[fruit] || 0) + 1;
-    });
-    console.log(counts);
-    let reward = 0;
-    for (const [fruit, count] of Object.entries(counts)) {
-      if (count === 2) reward += fruitPoints[fruit]?.[0] || 0;
-      if (count === 3) reward += fruitPoints[fruit]?.[1] || 0;
-    }
-    return reward;
-  };
-
   const Reel = ({ isRolling, stopIndex }) => {
     const itemHeight = 100;
     const visibleItems = 3;
@@ -118,16 +104,14 @@ function Contents() {
     const containerRef = useRef(null);
     const listRef = useRef(null);
     const winSoundRef = useRef(null);
-
-    const listClassName = `item-list ${isScrolling ? 'is-scrolling' : ''}`;
-    const items = ['1.a', '2.b', '3.c', '4.d', '5.e', '6.f'];
+    const items = ['1.a', '2.b', '3.c'];
 
     useEffect(() => {
       const container = containerRef.current;
       const list = listRef.current;
   
       if (container && list) {
-        const originalContentHeight = list.scrollHeight / 2;
+        const originalContentHeight = list.scrollHeight;
         const containerHeight = container.clientHeight;
         setIsScrolling(originalContentHeight > containerHeight);
       }
@@ -203,14 +187,18 @@ function Contents() {
                         <Reel isRolling={isRolling} stopIndex={stopIndexes[2]} />
                     </div>
                 </div>
-                <button className='btn-spin' onClick={startSpin} disabled={isRolling}>
-                    {isRolling ? '굴리는 중...' : '스핀!'}
+                <button 
+                  className={`btn-spin ${isRolling || points < 10 ? 'disabled' : ''}`}
+                  onClick={startSpin}
+                  disabled={isRolling || points < 10}
+                >
+                    {isRolling ? '🎰 굴리는 중...' : points < 10 ? '포인트 부족' : '🎲 스핀!'}
                 </button>
-                <div className='contents-left-content-result'>
+                {/* <div className='contents-left-content-result'>
                 {stopIndexes.map((index, i) => (
                     <span key={i}>{images[index]}</span>
                 ))}
-                </div>
+                </div> */}
                 <div className="contents-left-points">
                     현재 포인트: {points}
                 </div>
@@ -218,33 +206,33 @@ function Contents() {
 
             <div className='contents-right'>
                 <div className="contents-right-top">
+                  <h3 className="section-title">📊 실시간 정보</h3>
                   <div className="scroll-container" ref={containerRef}>
-                    <ul className={listClassName} ref={listRef}>
+                    <ul className={`item-list ${isScrolling ? 'is-scrolling' : ''}`} ref={listRef}>
                       {items.map((item, index) => (
                         <li key={`original-${index}`}>{item}</li>
                       ))}
-
                       {isScrolling && items.map((item, index) => (
                         <li key={`clone-${index}`}>{item}</li>
                       ))}
                     </ul>
                   </div>
                 </div>
-                <div className='contents-right-bottom'>
-                  <table>
-                    <tbody>
-                      {outcomes.map((item) => { 
-                          return (
-                            <tr>
-                              <td>{item.count === 0 ? '미당첨' : Array.from({ length: item.count }, () => item.prize)}</td>
-                              <td>{item.reward} Point</td>
-                              <td>{item.weight}%</td>
-                            </tr>
-                          )
-                        }
-                      )}
-                    </tbody>
-                  </table>
+                <div className="contents-right-bottom">
+                  <h3 className="section-title prize-title">💰 상금 표</h3>
+                  <div className="prize-table">
+                    {outcomes.map((item, idx) => (
+                      <div key={idx} className="prize-item">
+                        <div className="prize-symbol">
+                          {item.count === 0 ? '❌' : Array.from({ length: item.count }, () => item.prize).join('')}
+                        </div>
+                        <div className="prize-info">
+                          <p className="prize-reward">{item.reward} P</p>
+                          <p className="prize-weight">{item.weight}%</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
             </div>
         </div>
