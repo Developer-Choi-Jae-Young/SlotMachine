@@ -18,3 +18,7 @@ body {
     background: linear-gradient(to bottom right, #9333ea, #db2777, #dc2626);
     color: #fff;
 }
+
+a {
+    text-decoration: none;
+}

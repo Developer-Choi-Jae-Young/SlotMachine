@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import './Header.css'
 
-function Header() {
-    const [user] = useState({ username: 'Player1', points: 1000 });
+function Header({ user, setUser }) {
     const [isLogin] = useState(false);
     
+    const navigate = useNavigate();
     useEffect(() => {
         const userData = localStorage.getItem("currentUser")
         if (userData) {
           setUser(JSON.parse(userData))
         } else {
-            //로그인 페이지로
+          navigate('/login');
         }
       }, [])
 
@@ -38,16 +39,16 @@ function Header() {
     <div className="header">
       <div className="header-container">
         <div className="header-title">
-          <h1>🎰 과일 슬롯 게임</h1>
+          <Link to="/"><h1>🎰 과일 슬롯 게임</h1></Link>
         </div>
         
         {isLogin ? (
           <div className="header-buttons">
-            <button className="header-button">마이페이지</button>
+            <Link to="/mypage" className="header-button">마이페이지</Link>
             <button className="header-button">로그아웃</button>
           </div>
         ) : (
-          <button className="header-button">로그인</button>
+          <Link to="/login" className="header-button">로그인</Link>
         )}
       </div>
     </div>
