@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { getUsers, saveCurrentUser } from '../context/UtilsContext';
 import './Login.css'
 
-const Login = () => {
+const Login = ({setUser}) => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({ username: '', password: '' });
     const [error, setError] = useState('');
@@ -14,8 +14,9 @@ const Login = () => {
       const user = users.find(u => u.username === formData.username && u.password === formData.password);
       
       if (user) {
-        saveCurrentUser(user);
-        navigate('/');
+        saveCurrentUser(user); // 세션 스토리지에 저장 (새로고침 대비)
+        setUser(user);         // <--- App.jsx의 상태를 즉시 업데이트 (가장 중요)
+        navigate('/');         // 메인 페이지로 이동
       } else {
         setError('아이디 또는 비밀번호가 잘못되었습니다.');
       }

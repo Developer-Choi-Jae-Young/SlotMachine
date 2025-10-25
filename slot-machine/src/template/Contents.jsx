@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import './Contents.css'
+import { updateUserInStorage } from '../context/UtilsContext';
 
 const images = ['🍎', '🍊', '🍌', '🍇', '🍓', '🥝', '🍒'];
 const outcomes = [
-  // name: 결과 이름, prize: 당첨될 과일, count: 당첨 과일 개수, reward: 보상, weight: 가중치(확률%)
   { name: '사과 2개', prize: '🍎', count: 2, reward: 20, weight: 10 },
   { name: '사과 3개', prize: '🍎', count: 3, reward: 50, weight: 2 }, 
   { name: '오렌지 2개', prize: '🍊', count: 2, reward: 25, weight: 8 },
@@ -95,10 +95,9 @@ const getWeightedRandomIndex = (weights) => {
   };
   
 
-function Contents() {
+function Contents({ user, setUser }) {
     const [isRolling, setIsRolling] = useState(false);
     const [stopIndexes, setStopIndexes] = useState([0, 0, 0]);
-    const [points, setPoints] = useState(100); // 시작 포인트
     const [isScrolling, setIsScrolling] = useState(false);
     const [showWinEffect, setShowWinEffect] = useState(false);
     const containerRef = useRef(null);
@@ -140,9 +139,11 @@ function Contents() {
     };
 
     const startSpin = () => {
-        if (isRolling || points < 10) return;
+        if (isRolling || user.points < 10) return;
         setIsRolling(true);
-        setPoints(prev => prev - 10); // 10포인트 차감
+        const updatedUser = { ...user, points: user.points - 10 };
+        setUser(updatedUser);
+        updateUserInStorage(updatedUser);
       
         const outcomeWeights = outcomes.map(o => o.weight);
         const resultIndex = getWeightedRandomIndex(outcomeWeights);
@@ -168,7 +169,9 @@ function Contents() {
             setIsRolling(false);
           }
           
-          setPoints(prev => prev + finalOutcome.reward);
+          const finalUser = { ...updatedUser, points: updatedUser.points + finalOutcome.reward };
+          setUser(finalUser);
+          updateUserInStorage(finalUser);
       }, 3000);
     };
 
@@ -188,19 +191,14 @@ function Contents() {
                     </div>
                 </div>
                 <button 
-                  className={`btn-spin ${isRolling || points < 10 ? 'disabled' : ''}`}
+                  className={`btn-spin ${isRolling || user.points < 10 ? 'disabled' : ''}`}
                   onClick={startSpin}
-                  disabled={isRolling || points < 10}
+                  disabled={isRolling || user.points < 10}
                 >
-                    {isRolling ? '🎰 굴리는 중...' : points < 10 ? '포인트 부족' : '🎲 스핀!'}
+                    {isRolling ? '🎰 굴리는 중...' : user.points < 10 ? '포인트 부족' : '🎲 스핀!'}
                 </button>
-                {/* <div className='contents-left-content-result'>
-                {stopIndexes.map((index, i) => (
-                    <span key={i}>{images[index]}</span>
-                ))}
-                </div> */}
                 <div className="contents-left-points">
-                    현재 포인트: {points}
+                    현재 포인트: {user.points}
                 </div>
             </div>
 
