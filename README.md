@@ -1,2 +1,0 @@
-# SlotMachine
-SlotMachine Project
